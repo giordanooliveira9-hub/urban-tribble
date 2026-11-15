@@ -7,7 +7,8 @@ on:
     branches: [main]
 
 permissions:
-  contents: read
+  contents: write
+  actions: write
 
 jobs:
   build:
@@ -32,10 +33,16 @@ jobs:
           gradle-version: '8.9'
 
       - name: Extrair projeto ZIP
-        run: unzip -q *.zip -d .
+        run: |
+          ls -la
+          unzip -q *.zip -d .
+          ls -la GB-Voz-Inteligente || true
+
+      - name: Aceitar licenças do Android
+        run: yes | sdkmanager --licenses || true
 
       - name: Compilar aplicativo
-        run: gradle -p GB-Voz-Inteligente :app:assembleDebug
+        run: gradle -p GB-Voz-Inteligente :app:assembleDebug --stacktrace
 
       - name: Disponibilizar APK
         uses: actions/upload-artifact@v4
