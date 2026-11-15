@@ -1,0 +1,55 @@
+name: Compilar GB Voz Inteligente
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+  actions: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Baixar projeto
+        uses: actions/checkout@v4
+
+      - name: Configurar Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Configurar Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Ver o que tem no repo
+        run: |
+          ls -la
+          ls -1 | cat
+
+      - name: Extrair projeto ZIP
+        run: |
+          for f in *.zip "GB-Voz-Inteligente" "Gb voz inteligente"; do
+            if [ -f "$f" ]; then
+              echo "Descompactando $f"
+              unzip -o -q "$f" -d . || true
+            fi
+          done
+          ls -la
+
+      - name: Compilar aplicativo
+        run: |
+          if [ -d "GB-Voz-Inteligente" ]; then cd GB-Voz-Inteligente; fi
+          chmod +x gradlew || true
+          ./gradlew :app:assembleDebug --stacktrace || gradle :app:assembleDebug --stacktrace
+
+      - name: Disponibilizar APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: GB-Voz-Inteligente-APK
+          path: "**/app/build/outputs/apk/debug/app-debug.apk"
+          retention-days: 14
